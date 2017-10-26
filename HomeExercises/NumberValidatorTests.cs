@@ -23,6 +23,7 @@ namespace HomeExercises
         {
             var exc = Assert.Throws<ArgumentException>(() => new NumberValidator(precision, scale, onlyPositive));
             Assert.That(exc.Message, Is.EqualTo(expectedMessage));
+	        //CR(epeshk): помогла ли эта проверка найти ошибки в сообщениях? Какие недостатки есть у проверки сообщений в исключениях?
         }
 
         [TestCase(1, 0, true)]
@@ -32,6 +33,9 @@ namespace HomeExercises
 	        new NumberValidator(precision, scale, onlyPositive);
 	    }
 
+		//CR(epeshk): как не указывать явно все аргументы метода в тесткейсах?
+		//CR(epeshk): тесткейсам нужно дать названия, поясняющие, что именно проверяется (кроме совсем очевидных - например null и пустой строки)
+		//CR(epeshk): "0", "00.00" исчезли
 		[TestCase(5, 4, true, null, ExpectedResult = false)]
 		[TestCase(5, 4, true, "", ExpectedResult = false)]
 		[TestCase(1, 0, true, "+", ExpectedResult = false)]
@@ -43,10 +47,10 @@ namespace HomeExercises
 		[TestCase(2, 1, true, "0,0", ExpectedResult = true)]
 		[TestCase(2, 1, true, "1.2", ExpectedResult = true)]
 		[TestCase(2, 1, true, "+1.2", ExpectedResult = false)]
-		[TestCase(2, 1, false, "-0.0", ExpectedResult = false)]
-        [TestCase(3, 1, true, "+1.2", ExpectedResult = true)]
-		[TestCase(3, 1, true, "-0.0", ExpectedResult = false)]
-		[TestCase(3, 1, false, "-0.0", ExpectedResult = true)]
+		[TestCase(2, 1, false, "-0.0", ExpectedResult = false)] // <----
+		[TestCase(3, 1, true, "+1.2", ExpectedResult = true)]   //  Без TestName не сразу понятно,
+		[TestCase(3, 1, true, "-0.0", ExpectedResult = false)]  //  чем отличаются TestCase
+		[TestCase(3, 1, false, "-0.0", ExpectedResult = true)]  // <----
 		[TestCase(3, 2, true, "5.42", ExpectedResult = true)]
 		[TestCase(3, 2, true, "54.2", ExpectedResult = true)]
 	    [TestCase(3, 2, true, "a.sd", ExpectedResult = false)]
@@ -54,6 +58,8 @@ namespace HomeExercises
 		{
             return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number);
 		}
+		
+		//CR(epeshk): NumberValidator можно создать с дефолтными аргументами в конструкторе. В тестах все аргументы всегда передаются явно.
 	}
 
 

@@ -8,14 +8,17 @@ namespace HomeExercises
         [Test]
         [Description("Проверка текущего царя")]
         [Category("ToRefactor")]
+        //CR(epeshk): Run this!
         public void CheckCurrentTsar()
         {
             var actualTsar = TsarRegistry.GetCurrentTsar();
 
-            var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
-                new Person("Vasili III of Russia", 28, 170, 60, null));
-
+            var expectedTsar =
+                new Person("Ivan IV The Terrible", 54, 170, 70,
+                    new Person("Vasili III of Russia", 28, 170, 60,
+                        new Person("Ivan III Vasilievich", 65, 170, 70, null)));
             // ShouldBeEquivalentTo не проверяет равенство типов
+            //CR(epeshk): overspecification - надо оставить по одному assert'у в тесте
             actualTsar.Should().BeOfType(expectedTsar.GetType());
             actualTsar.ShouldBeEquivalentTo(expectedTsar,
                 options => options.Excluding(o => o.Id).Excluding(o => o.Parent.Id));
@@ -28,8 +31,10 @@ namespace HomeExercises
         public void CheckCurrentTsar_WithCustomEquality()
         {
             var actualTsar = TsarRegistry.GetCurrentTsar();
-            var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
-                new Person("Vasili III of Russia", 28, 170, 60, null));
+            var expectedTsar =
+                new Person("Ivan IV The Terrible", 54, 170, 70,
+                    new Person("Vasili III of Russia", 28, 170, 60,
+                        new Person("Ivan III Vasilievich", 65, 170, 70, null)));
 
             // - Какие недостатки у такого подхода? 
             // - Отсутствие информации о том, что пошло не так. Тест сообщит только то, что false - это не true.
@@ -56,9 +61,11 @@ namespace HomeExercises
     {
         public static Person GetCurrentTsar()
         {
-            return new Person(
+            return 
+                new Person(
                 "Ivan IV The Terrible", 54, 170, 70,
-                new Person("Vasili III of Russia", 28, 170, 60, null));
+                    new Person("Vasili III of Russia", 28, 170, 60,
+                        new Person("Ivan III Vasilievich", 65, 170, 70, null)));
         }
     }
 
