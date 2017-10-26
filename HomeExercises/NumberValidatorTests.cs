@@ -5,30 +5,57 @@ using NUnit.Framework;
 
 namespace HomeExercises
 {
-	public class NumberValidatorTests
+	public class NumberValidator_should
 	{
-		[Test]
-		public void Test()
-		{
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, true));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, false));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
+	    private const string InvalidScaleMessage = "scale must be a non-negative number less or equal than precision";
+	    private const string InvalidPrecisionMessage = "precision must be a positive number";
 
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("00.00"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-0.00"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+0.00"));
-			Assert.IsTrue(new NumberValidator(4, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(17, 2, true).IsValidNumber("0.000"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("a.sd"));
+        [TestCase(-1, 2, true, InvalidPrecisionMessage, 
+            TestName = "when precision is negative")]
+        [TestCase(1, -1, true, InvalidScaleMessage, 
+            TestName = "when scale is negative")]
+        [TestCase(6, 6, true, InvalidScaleMessage,
+            TestName = "when scale is equal to precision")]
+        [TestCase(1, 2, true, InvalidScaleMessage,
+            TestName = "when scale is greater than precision")]
+        public static void ThrowArgumentException(int precision, int scale, bool onlyPositive, 
+            string expectedMessage)
+        {
+            var exc = Assert.Throws<ArgumentException>(() => new NumberValidator(precision, scale, onlyPositive));
+            Assert.That(exc.Message, Is.EqualTo(expectedMessage));
+        }
+
+        [TestCase(1, 0, true)]
+        [TestCase(10, 9, true)]
+	    public static void NotThrow(int precision, int scale, bool onlyPositive)
+	    {
+	        new NumberValidator(precision, scale, onlyPositive);
+	    }
+
+		[TestCase(5, 4, true, null, ExpectedResult = false)]
+		[TestCase(5, 4, true, "", ExpectedResult = false)]
+		[TestCase(1, 0, true, "+", ExpectedResult = false)]
+		[TestCase(1, 0, true, "-", ExpectedResult = false)]
+		[TestCase(1, 0, true, "5", ExpectedResult = true)]
+		[TestCase(1, 0, true, "0.0", ExpectedResult = false)]
+		[TestCase(1, 0, true, "10", ExpectedResult = false)]
+		[TestCase(2, 1, true, "0.0", ExpectedResult = true)]
+		[TestCase(2, 1, true, "0,0", ExpectedResult = true)]
+		[TestCase(2, 1, true, "1.2", ExpectedResult = true)]
+		[TestCase(2, 1, true, "+1.2", ExpectedResult = false)]
+		[TestCase(2, 1, false, "-0.0", ExpectedResult = false)]
+        [TestCase(3, 1, true, "+1.2", ExpectedResult = true)]
+		[TestCase(3, 1, true, "-0.0", ExpectedResult = false)]
+		[TestCase(3, 1, false, "-0.0", ExpectedResult = true)]
+		[TestCase(3, 2, true, "5.42", ExpectedResult = true)]
+		[TestCase(3, 2, true, "54.2", ExpectedResult = true)]
+	    [TestCase(3, 2, true, "a.sd", ExpectedResult = false)]
+		public static bool ValidateNumber(int precision, int scale, bool onlyPositive, string number)
+		{
+            return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number);
 		}
 	}
+
 
 	public class NumberValidator
 	{
@@ -45,7 +72,7 @@ namespace HomeExercises
 			if (precision <= 0)
 				throw new ArgumentException("precision must be a positive number");
 			if (scale < 0 || scale >= precision)
-				throw new ArgumentException("precision must be a non-negative number less or equal than precision");
+				throw new ArgumentException("scale must be a non-negative number less or equal than precision");
 			numberRegex = new Regex(@"^([+-]?)(\d+)([.,](\d+))?$", RegexOptions.IgnoreCase);
 		}
 
