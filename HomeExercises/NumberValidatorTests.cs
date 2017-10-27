@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace HomeExercises
@@ -12,6 +11,8 @@ namespace HomeExercises
 
         [TestCase(-1, 2, true, InvalidPrecisionMessage, 
             TestName = "when precision is negative")]
+        [TestCase(0, 0, true, InvalidPrecisionMessage,
+            TestName = "when scale is zero")]
         [TestCase(1, -1, true, InvalidScaleMessage, 
             TestName = "when scale is negative")]
         [TestCase(6, 6, true, InvalidScaleMessage,
@@ -23,6 +24,12 @@ namespace HomeExercises
         {
             var exc = Assert.Throws<ArgumentException>(() => new NumberValidator(precision, scale, onlyPositive));
             Assert.That(exc.Message, Is.EqualTo(expectedMessage));
+            // Проверка сообщения в исключениях - ужасный механизм: изменение сообщения сразу же влечёт недействительность теста
+            // Однако нет иного способа удостовериться, что было выброшено нужное исключение
+            // Предположим, что одна из проверок написана неверно и второй тест падает из-за равенства scale и precision, 
+            // а не из-за того, что scale равен 0. Без проверки сообщения нет шансов узнать, что именно пошло не так
+            // Итого: тест проходит при неправильно работающем коде. Такой тест не только некорректен, но и вреден,
+            // поскольку создаёт ложное впечатление о работоспособности кода.
         }
 
         [TestCase(1, 0, true)]
@@ -31,31 +38,37 @@ namespace HomeExercises
 	    {
 	        new NumberValidator(precision, scale, onlyPositive);
 	    }
+		
 
-		[TestCase(5, 4, true, null, ExpectedResult = false)]
-		[TestCase(5, 4, true, "", ExpectedResult = false)]
-		[TestCase(1, 0, true, "+", ExpectedResult = false)]
-		[TestCase(1, 0, true, "-", ExpectedResult = false)]
-		[TestCase(1, 0, true, "5", ExpectedResult = true)]
-		[TestCase(1, 0, true, "0.0", ExpectedResult = false)]
-		[TestCase(1, 0, true, "10", ExpectedResult = false)]
-		[TestCase(2, 1, true, "0.0", ExpectedResult = true)]
-		[TestCase(2, 1, true, "0,0", ExpectedResult = true)]
-		[TestCase(2, 1, true, "1.2", ExpectedResult = true)]
-		[TestCase(2, 1, true, "+1.2", ExpectedResult = false)]
-		[TestCase(2, 1, false, "-0.0", ExpectedResult = false)]
-        [TestCase(3, 1, true, "+1.2", ExpectedResult = true)]
-		[TestCase(3, 1, true, "-0.0", ExpectedResult = false)]
-		[TestCase(3, 1, false, "-0.0", ExpectedResult = true)]
-		[TestCase(3, 2, true, "5.42", ExpectedResult = true)]
-		[TestCase(3, 2, true, "54.2", ExpectedResult = true)]
-	    [TestCase(3, 2, true, "a.sd", ExpectedResult = false)]
-		public static bool ValidateNumber(int precision, int scale, bool onlyPositive, string number)
+		[TestCase("0", 1, 0)]
+		[TestCase("0.0", 2, 1, TestName = "when number has fraction part")]
+		[TestCase("0,0", 2, 1, TestName = "when comma is used as separator")]
+		[TestCase("1.2", 2, 1, TestName = "when number is not zero")]
+        [TestCase("+1.2", 3, 1, TestName = "when number has sign")]
+		[TestCase("-120.12", 7, 2, false, TestName = "when number is negative")]
+		[TestCase("15.2", 10, 1, TestName = "when number is shorter than precision")]
+        [TestCase("54.2", 3, 2, TestName = "when fraction is shorter than scale")]
+		public static void ValidateNumber(string number, int precision, int scale, bool onlyPositive = true)
 		{
-            return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number);
+            Assert.True(new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number));
 		}
-	}
 
+	    [TestCase(null, 5, 4)]
+	    [TestCase("", 5, 4)]
+	    [TestCase("+", 1, 0)]
+	    [TestCase("-", 1, 0)]
+	    [TestCase("10", 1, 0, TestName = "when int part exceeds precision")]
+	    [TestCase("00.00", 3, 2, TestName = "when number length exceeds precision")]
+        [TestCase("0.0", 2, 0, TestName = "when fraction part exceeds scale")]
+	    [TestCase("+1.2", 2, 1, TestName = "when number with sign is longer than precision")]
+	    [TestCase("-0.0", 2, 1, false, TestName = "when negative number with sign is longer than precision")]
+	    [TestCase("-0.0", 3, 1, TestName = "when only-positive validator is supplied with negative number")]
+	    [TestCase("a.sd", 3, 2, TestName = "when number contains non-digits")]
+        public static void NotValidateNumber(string number, int precision, int scale, bool onlyPositive = true)
+        {
+	        Assert.False(new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number));
+	    }
+	}
 
 	public class NumberValidator
 	{

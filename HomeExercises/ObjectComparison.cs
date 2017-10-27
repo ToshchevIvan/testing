@@ -10,17 +10,26 @@ namespace HomeExercises
         [Category("ToRefactor")]
         public void CheckCurrentTsar()
         {
-            var actualTsar = TsarRegistry.GetCurrentTsar();
+            // Важно, чтобы actual и expected были одного типа
+            // Что, если GetCurrentTsar() поменяется и будет отдавать объект другого типа?
+            // Например, Person2? В контексте этого теста и (мнимой) задачи, сравнение объектов разного типа не имеет смысла
+            // Но ShouldBeEquivalentTo это не учитывает
+            // Можно отказаться от явной проверки и сделать так:
+            Person actualTsar = TsarRegistry.GetCurrentTsar();
+            // Хотя это (в отличие от явной проверки) не гарантирует, что actualTsar - не объект некоего подкласса Person...
 
             var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
                 new Person("Vasili III of Russia", 28, 170, 60, null));
 
-            // ShouldBeEquivalentTo не проверяет равенство типов
-            actualTsar.Should().BeOfType(expectedTsar.GetType());
+            // overspecification - это про количество Assert'ов или про количество проверяемых условий?
+            // Например, если условие - "два объекта Person равны" - это overspecification, или нет?
             actualTsar.ShouldBeEquivalentTo(expectedTsar,
-                options => options.Excluding(o => o.Id).Excluding(o => o.Parent.Id));
-            // Теперь тест автоматически сравнивает все публичные поля и свойства, кроме исключённых из сравнения явно (Id)
-            // Что логично: два объекта Person равны, когда равно всё то, что видно извне
+                options => options.Excluding(ctx => ctx.SelectedMemberInfo.DeclaringType == expectedTsar.GetType() &&
+                                                    ctx.SelectedMemberInfo.Name == "Id"));
+            // Почему изначально было сделано не так:
+            // Поскольку expectedTsar объявляется прямо в тесте, нет никакой проблемы, чтобы изменить условие в assert
+            // И оставить тест простым для понимания
+            // Если же тест сравнивает множество произвольных объектов, тогда, конечно, необходима универсальная проверка
         }
 
         [Test]
