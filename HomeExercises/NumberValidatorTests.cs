@@ -1,4 +1,6 @@
-﻿using System;
+﻿//CR(epeshk): надо убрать все комментарии с ревью и обсуждениями из решения
+
+using System;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using NUnit.Framework;
@@ -16,6 +18,7 @@ namespace HomeExercises
         //CR(epeshk): При scale == 0 исключение не кидается, тесткейс на самом деле проверяет случай "when scale is equal to precision"
         // Это не так: тесткейс проверяет условие precision <= 0. 
         // Если убрать из него проверку сообщения, тогда действительно непонятно, что он проверяет (может сработать и на то и на другое)
+        //CR(epeshk): тогда надо исправить TestName
         [TestCase(0, 0, true, InvalidPrecisionMessage,
             TestName = "when scale is zero")]
         [TestCase(1, -1, true, InvalidScaleMessage,
@@ -29,7 +32,7 @@ namespace HomeExercises
         {
             new Action(() => new NumberValidator(precision, scale, onlyPositive))
                 .ShouldThrow<ArgumentException>()
-                .Which.Message.Should().Be(expectedMessage);
+                .Which.Message.Should().Be(expectedMessage); //CR(epeshk): есть готовый метод для этого: .WithMessage(expectedMessage)
             // Проверка сообщения в исключениях - ужасный механизм: изменение сообщения сразу же влечёт недействительность теста
             // Однако нет иного способа удостовериться, что было выброшено нужное исключение
             // Предположим, что одна из проверок написана неверно и второй тест падает из-за равенства scale и precision, 
@@ -114,6 +117,7 @@ namespace HomeExercises
             if (precision <= 0)
                 throw new ArgumentException("precision must be a positive number");
             if (scale < 0 || scale >= precision)
+                //CR(epeshk): "less or equal" -> "less", заметь, что эту ошибку в мессадже не обнаружить тестами
                 throw new ArgumentException("scale must be a non-negative number less or equal than precision");
             numberRegex = new Regex(@"^([+-]?)(\d+)([.,](\d+))?$", RegexOptions.IgnoreCase);
         }
