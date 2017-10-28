@@ -60,7 +60,7 @@ namespace HomeExercises
         [TestCase(".1", 1, 0, TestName = "when number has no int part")]
         [TestCase("1.", 1, 0, TestName = "when fraction part is omitted")]
         [TestCase("10", 1, 0, TestName = "when int part exceeds precision")]
-        [TestCase("00.00", 3, 2, TestName = "when number length exceeds precision")]
+        [TestCase("10.00", 3, 2, TestName = "when number length exceeds precision")]
         [TestCase("0.0", 2, 0, TestName = "when fraction part exceeds scale")]
         [TestCase("+1.2", 2, 1, TestName = "when number with sign is longer than precision")]
         [TestCase("-0.0", 2, 1, false, TestName = "when negative number with sign is longer than precision")]
