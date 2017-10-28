@@ -1,8 +1,8 @@
 language: csharp
 solution: testing.sln
-before_install:
-  - sudo apt-get install nunit-console
+install:
+    nuget install NUnit.Runners -OutputDirectory testrunner
 before_script:
   - nuget restore testing.sln
 after_script:
-  - nunit-console HomeExercises/bin/Release/ObjectComparison.dll
+  - ./testrunner/NUnit.ConsoleRunner/tools/nunit3-console.exe HomeExercises/bin/Release/ObjectComparison.dll
