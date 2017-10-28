@@ -23,9 +23,18 @@ namespace HomeExercises
 
             // overspecification - это про количество Assert'ов или про количество проверяемых условий?
             // Например, если условие - "два объекта Person равны" - это overspecification, или нет?
+            //CR(epeshk): получается, что требований два - 1) тип Person, 2) равенство полей.
+            // т.к. в C# - статическая типизация - проверку типа обычно можно пропустить. Но если надо проверить тип - лучше сделать это в отдельном тесте
             actualTsar.ShouldBeEquivalentTo(expectedTsar,
                 options => options.Excluding(ctx => ctx.SelectedMemberInfo.DeclaringType == expectedTsar.GetType() &&
                                                     ctx.SelectedMemberInfo.Name == "Id"));
+            //CR(epeshk): GetType() -> typeof(Person), ctx -> opt (ctx обычно используется для CanellationToken или context)
+            //CR(epeshk): давай теперь скроем явное использование SelectedMemberInfo внутри extension-метода. Примерно так:
+            // actualTsar.ShouldBeEquivalentTo(expectedTsar,
+            //    opt => opt
+            //        .FromType(typeof(Person))
+            //        .ExcludeField(nameof(Person.Id)));
+            
             // Почему изначально было сделано не так:
             // Поскольку expectedTsar объявляется прямо в тесте, нет никакой проблемы, чтобы изменить условие в assert
             // И оставить тест простым для понимания

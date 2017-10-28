@@ -11,6 +11,8 @@ namespace HomeExercises
 
         [TestCase(-1, 2, true, InvalidPrecisionMessage, 
             TestName = "when precision is negative")]
+        
+        //CR(epeshk): При scale == 0 исключение не кидается, тесткейс на самом деле проверяет случай "when scale is equal to precision"
         [TestCase(0, 0, true, InvalidPrecisionMessage,
             TestName = "when scale is zero")]
         [TestCase(1, -1, true, InvalidScaleMessage, 
@@ -36,6 +38,7 @@ namespace HomeExercises
         [TestCase(10, 9, true)]
 	    public static void NotThrow(int precision, int scale, bool onlyPositive)
 	    {
+		    //CR(epeshk): стоит использовать Assert.DoesNotThrow(() => ...) или new Action(() => ...).ShouldNotThrow();
 	        new NumberValidator(precision, scale, onlyPositive);
 	    }
 		
@@ -48,8 +51,10 @@ namespace HomeExercises
 		[TestCase("-120.12", 7, 2, false, TestName = "when number is negative")]
 		[TestCase("15.2", 10, 1, TestName = "when number is shorter than precision")]
         [TestCase("54.2", 3, 2, TestName = "when fraction is shorter than scale")]
+		//CR(epeshk): стоит добавить тесткейс c ведущими нулями
 		public static void ValidateNumber(string number, int precision, int scale, bool onlyPositive = true)
 		{
+			//CR(epeshk): давай заиспользуем здесь FluentAssertions
             Assert.True(new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number));
 		}
 
@@ -59,15 +64,18 @@ namespace HomeExercises
 	    [TestCase("-", 1, 0)]
 	    [TestCase("10", 1, 0, TestName = "when int part exceeds precision")]
 	    [TestCase("00.00", 3, 2, TestName = "when number length exceeds precision")]
-        [TestCase("0.0", 2, 0, TestName = "when fraction part exceeds scale")]
+	    [TestCase("0.0", 2, 0, TestName = "when fraction part exceeds scale")]
 	    [TestCase("+1.2", 2, 1, TestName = "when number with sign is longer than precision")]
 	    [TestCase("-0.0", 2, 1, false, TestName = "when negative number with sign is longer than precision")]
 	    [TestCase("-0.0", 3, 1, TestName = "when only-positive validator is supplied with negative number")]
 	    [TestCase("a.sd", 3, 2, TestName = "when number contains non-digits")]
+	    //CR(epeshk): стоит добавить тесткейсы, в которых нет целой или дробной части "1.", ".1"
         public static void NotValidateNumber(string number, int precision, int scale, bool onlyPositive = true)
         {
 	        Assert.False(new NumberValidator(precision, scale, onlyPositive).IsValidNumber(number));
 	    }
+		
+		//CR(epeshk): надо добавить тест, в котором NumberValidator создаётся с параметрами по умолчанию и проверяется, что проверка производится в соответствии с ожидаемым по умолчанию значениями
 	}
 
 	public class NumberValidator
