@@ -1,8 +1,8 @@
 language: csharp
 solution: testing.sln
 install:
-    nuget install NUnit.Runners -OutputDirectory testrunner
-before_script:
   - nuget restore testing.sln
-after_script:
-  - ./testrunner/NUnit.ConsoleRunner/tools/nunit3-console.exe HomeExercises/bin/Release/ObjectComparison.dll
+  - nuget install NUnit.Runners -Version 3.7.0 -OutputDirectory testrunner
+script:
+  - msbuild /p:Configuration=Release testing.sln
+  - ./testrunner/NUnit.Runners.3.7.0/tools/nunit-console.exe HomeExercises/bin/Release/ObjectComparison.dll
